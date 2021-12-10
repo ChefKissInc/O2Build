@@ -1,0 +1,9 @@
+public func main() {
+    1 + 1 // Wow how does he do it
+}
+
+// Later ;)
+// public abi "SystemV64" func kernel_main(a: String) -> ReturnCode {
+//
+// }
+
