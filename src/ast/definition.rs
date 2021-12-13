@@ -1,5 +1,7 @@
 use std::slice::Iter;
 
+use debug_tree::add_branch;
+
 use super::function::{parse_abi, parse_function_definition};
 use crate::{
     abi::Abi,
@@ -9,6 +11,7 @@ use crate::{
 };
 
 pub fn parse_definition(public: bool, it: &mut Iter<Token>) -> Result<Node, Option<Token>> {
+    add_branch!("parse_definition");
     let token = next_token!(it, return Err(None));
 
     match token {

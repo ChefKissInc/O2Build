@@ -1,6 +1,4 @@
-public func main() {
-    1 + 1 // Wow how does he do it
-}
+public func main() => 2 + 2 - 1;
 
 // Later ;)
 // public abi "SystemV64" func kernel_main(a: String) -> ReturnCode {

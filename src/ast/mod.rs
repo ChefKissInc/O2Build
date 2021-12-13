@@ -1,10 +1,11 @@
+use debug_tree::add_branch;
+
 use self::{
     definition::parse_definition,
     expression::Expression,
-    function::{parse_abi, parse_function_definition},
+    function::{parse_abi, parse_function_definition, FunctionPrototype},
 };
 use crate::{
-    abi::Abi,
     next_token,
     token::{Keyword, Token},
 };
@@ -18,17 +19,18 @@ pub mod statement;
 
 #[macro_export]
 macro_rules! match_token {
-    ($next:expr, $($expected:pat_param)|+, $($ret:tt)*) => {
+    ($next:expr, $($expected:pat_param)|+, $($ret:tt)*) => {{
+        add_branch!("match_token");
         match $next {
             Some($($expected)|+) => $($ret)*,
             Some(token) => Err(Some(token.clone())),
             None => Err(None),
         }
-    };
+    }};
 }
 
 #[derive(Debug, PartialEq)]
-pub struct CompilationUnit {
+pub struct Program {
     pub members: Vec<Node>,
 }
 
@@ -37,23 +39,13 @@ pub enum Node {
     Expression(Expression),
     FunctionArgument,
     StaticDecl,
-    FunctionDefinition {
-        public: bool,
-        abi: Abi,
-        symbol: String,
-        args: Vec<Node>,
-        body: Vec<Node>,
-    },
-    ExternalFunction {
-        public: bool,
-        abi: Abi,
-        symbol: String,
-        args: Vec<Node>,
-    },
+    FunctionDefinition(FunctionPrototype, Expression),
+    ExternalFunction(FunctionPrototype),
 }
 
-impl CompilationUnit {
+impl Program {
     pub fn new(tokens: Vec<Token>) -> (Self, Vec<Option<Token>>) {
+        add_branch!("Program::new");
         let mut members = Vec::new();
         let mut errs = Vec::new();
         let mut it = tokens.iter();

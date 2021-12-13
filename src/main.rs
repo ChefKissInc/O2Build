@@ -34,24 +34,44 @@
 
 use std::fs;
 
-use MolecularRearranger::{ast::CompilationUnit, generator::CompUnitToAsm, tokeniser::Tokeniser};
+use debug_tree::add_branch;
+use inkwell::{context::Context, passes::PassManager};
+use MolecularRearranger::{ast::Program, generator::Compiler, tokeniser::Tokeniser};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     assert_eq!(args.len(), 2, "You must provide a path to an oxygen file");
     println!("Infusing: {}", args[1]);
 
+    let contents = fs::read_to_string(&args[1]).expect("Failed to read file");
+    add_branch!("Module {}", args[1]);
+    // defer_print!();
+
     // Tokenise text
-    let (tokens, errs) = fs::read_to_string(&args[1])
-        .expect("Failed to read file")
-        .tokenise();
+    let (tokens, errs) = contents.tokenise();
     println!("{:?}\n", tokens);
     println!("Errors: {:?}\n", errs);
 
     // Parse AST
-    let (compilation_unit, errs) = CompilationUnit::new(tokens);
-    println!("{:#?}\n", compilation_unit);
+    let (program, errs) = Program::new(tokens);
+    println!("{:#?}\n", program);
     println!("Errors: {:?}\n", errs);
-    let asm = compilation_unit.to_llvm_ir();
-    println!("{}\n", asm);
+
+    let context = Context::create();
+    let module = context.create_module("name");
+    let builder = context.create_builder();
+
+    let fpm = PassManager::create(&module);
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+    fpm.add_gvn_pass();
+    fpm.add_cfg_simplification_pass();
+    fpm.add_basic_alias_analysis_pass();
+    fpm.add_promote_memory_to_register_pass();
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+    fpm.initialize();
+
+    let compiler = Compiler::new(&context, &builder, &fpm, &module);
+    println!("\n\nLLVM IR:\n{}\n\n", compiler.compile_program(&program));
 }

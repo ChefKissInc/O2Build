@@ -1,6 +1,6 @@
 use std::slice::Iter;
 
-use itertools::PeekingNext;
+use debug_tree::add_branch;
 
 use crate::{
     ast::binary::{BinaryOp, Precedence},
@@ -23,27 +23,36 @@ pub enum Expression {
         left_expr: Box<Expression>,
         right_expr: Box<Expression>,
     },
+    Unary {
+        op: super::binary::BinaryOp,
+        expr: Box<Expression>,
+    },
 }
 
 pub fn parse_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
+    add_branch!("parse_expr");
     let left_expr = parse_left_expr(it)?;
+
     parse_right_expr(it, 0, left_expr)
 }
 
 pub fn parse_left_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
+    add_branch!("parse_left_expr");
     let token = it.next();
 
     match token {
         Some(Token::Integer(_, t)) => Ok(Expression::IntegerLiteral(t.clone())),
         Some(Token::String(_, t)) => Ok(Expression::StringLiteral(t.clone())),
         Some(Token::LeftParen(_)) => parse_parenthesised_expr(it),
-        Some(Token::Plus(_) | Token::Minus(_)) => todo!(),
+        Some(Token::Plus(_)) => parse_unary_expr(it, BinaryOp::Addition),
+        Some(Token::Minus(_)) => parse_unary_expr(it, BinaryOp::Subtraction),
         Some(token) => Err(Some(token.clone())),
         None => Err(None),
     }
 }
 
 pub fn parse_parenthesised_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
+    add_branch!("parse_parenthesised_expr");
     let expr = Box::new(parse_expr(it)?);
     match_token!(it.next(), Token::RightParen(_), Ok(()))?;
     Ok(Expression::Parenthesised(expr))
@@ -51,36 +60,39 @@ pub fn parse_parenthesised_expr(it: &mut Iter<Token>) -> Result<Expression, Opti
 
 pub fn parse_right_expr(
     it: &mut Iter<Token>,
-    curr_precedence: i8,
+    precedence: i8,
     mut left_expr: Expression,
 ) -> Result<Expression, Option<Token>> {
+    add_branch!("parse_right_expr");
+
     loop {
-        let op = match it.peeking_next(|_| false) {
+        let op = match it.clone().next() {
             Some(Token::Plus(_)) => BinaryOp::Addition,
             Some(Token::Minus(_)) => BinaryOp::Subtraction,
             Some(Token::Times(_)) => BinaryOp::Multiplication,
             Some(Token::Divide(_)) => BinaryOp::Division,
             Some(_) => BinaryOp::None,
-            None => return Err(None),
+            None => break Err(None),
         };
 
-        let precedence = op.get_precedence();
+        let curr_precedence = op.get_precedence();
 
-        if precedence < curr_precedence {
-            return Ok(left_expr);
+        if curr_precedence < precedence {
+            break Ok(left_expr);
         }
 
         it.next();
+        add_branch!("it.next");
         let mut right_expr = parse_left_expr(it)?;
 
         if curr_precedence
-            < match it.peeking_next(|_| false) {
+            < match it.clone().next() {
                 Some(Token::Plus(_)) => BinaryOp::Addition,
                 Some(Token::Minus(_)) => BinaryOp::Subtraction,
                 Some(Token::Times(_)) => BinaryOp::Multiplication,
                 Some(Token::Divide(_)) => BinaryOp::Division,
                 Some(_) => BinaryOp::None,
-                None => return Err(None),
+                None => break Err(None),
             }
             .get_precedence()
         {
@@ -93,4 +105,10 @@ pub fn parse_right_expr(
             right_expr: Box::new(right_expr),
         };
     }
+}
+
+pub fn parse_unary_expr(it: &mut Iter<Token>, op: BinaryOp) -> Result<Expression, Option<Token>> {
+    add_branch!("parse_unary_expr");
+    let expr = Box::new(parse_left_expr(it)?);
+    Ok(Expression::Unary { op, expr })
 }

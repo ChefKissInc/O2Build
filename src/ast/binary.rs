@@ -1,3 +1,5 @@
+use debug_tree::add_branch;
+
 #[derive(Debug, PartialEq)]
 pub enum BinaryOp {
     Assignment,
@@ -20,6 +22,7 @@ pub trait Precedence {
 
 impl Precedence for BinaryOp {
     fn get_precedence(&self) -> i8 {
+        add_branch!("get_precedence");
         match *self {
             Self::Assignment => 0,
             Self::Equal
