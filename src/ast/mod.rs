@@ -30,7 +30,7 @@ macro_rules! match_token {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Program {
+pub struct SyntaxTree {
     pub members: Vec<Node>,
 }
 
@@ -43,7 +43,7 @@ pub enum Node {
     ExternalFunction(FunctionPrototype),
 }
 
-impl Program {
+impl SyntaxTree {
     pub fn new(tokens: Vec<Token>) -> (Self, Vec<Option<Token>>) {
         add_branch!("Program::new");
         let mut members = Vec::new();

@@ -32,13 +32,18 @@
 
 #![allow(non_snake_case)]
 
-use std::fs;
+use std::{fs, path::Path};
 
 use debug_tree::add_branch;
-use inkwell::{context::Context, passes::PassManager};
-use MolecularRearranger::{ast::Program, generator::Compiler, tokeniser::Tokeniser};
+use inkwell::{
+    context::Context,
+    passes::PassManager,
+    targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple},
+    OptimizationLevel,
+};
+use MolecularRearranger::{ast::SyntaxTree, generator::Compiler, get_config, tokeniser::Tokeniser};
 
-fn main() {
+fn main() -> Result<(), ()> {
     let args: Vec<String> = std::env::args().collect();
     assert_eq!(args.len(), 2, "You must provide a path to an oxygen file");
     println!("Infusing: {}", args[1]);
@@ -53,12 +58,14 @@ fn main() {
     println!("Errors: {:?}\n", errs);
 
     // Parse AST
-    let (program, errs) = Program::new(tokens);
+    let (program, errs) = SyntaxTree::new(tokens);
     println!("{:#?}\n", program);
     println!("Errors: {:?}\n", errs);
 
+    // LLVM stuffs
     let context = Context::create();
-    let module = context.create_module("name");
+    let module = context.create_module(get_config(&args[1]).unwrap());
+    module.set_source_file_name(&args[1]);
     let builder = context.create_builder();
 
     let fpm = PassManager::create(&module);
@@ -73,5 +80,40 @@ fn main() {
     fpm.initialize();
 
     let compiler = Compiler::new(&context, &builder, &fpm, &module);
-    println!("\n\nLLVM IR:\n{}\n\n", compiler.compile_program(&program));
+    let res = compiler.compile_program(&program);
+
+    if let Ok(ir) = res {
+        println!("\n\nLLVM IR:\n{}", ir);
+
+        Target::initialize_all(&InitializationConfig::default());
+
+        let triple = TargetTriple::create("x86_64-apple-darwin");
+        let target = Target::from_triple(&triple).expect("Failed to get target from target triple");
+        let target_machine = target
+            .create_target_machine(
+                &triple,
+                "generic",
+                "",
+                OptimizationLevel::Default,
+                RelocMode::Default,
+                CodeModel::Default,
+            )
+            .unwrap();
+
+        target_machine
+            .write_to_file(&module, FileType::Assembly, Path::new("Build/out.as"))
+            .expect("Failed to generate assembly");
+
+        target_machine
+            .write_to_file(&module, FileType::Object, Path::new("Build/out.o"))
+            .expect("Failed to generate object file");
+
+        Ok(())
+    } else {
+        println!(
+            "\n\n!! Failed to compile program: {} !!\n\n",
+            res.unwrap_err()
+        );
+        Err(())
+    }
 }

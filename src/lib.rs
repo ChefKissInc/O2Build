@@ -1,5 +1,8 @@
 #![allow(non_snake_case)]
 #![feature(derive_default_enum)]
+#![feature(path_file_prefix)]
+
+use std::path::Path;
 
 pub mod abi;
 pub mod ast;
@@ -15,4 +18,8 @@ macro_rules! next_token {
             None => $($err)*,
         }
     };
+}
+
+pub fn get_config(file_name: &str) -> Option<&str> {
+    Path::new(file_name).file_prefix()?.to_str()
 }
