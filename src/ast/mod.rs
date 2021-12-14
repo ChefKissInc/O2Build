@@ -1,12 +1,12 @@
 use debug_tree::add_branch;
 
 use self::{
-    definition::parse_definition,
+    definition::parse_def,
     expression::Expression,
-    function::{parse_abi, parse_func_def, FunctionPrototype},
+    function::{parse_callconv, parse_func_def, FunctionPrototype},
 };
 use crate::{
-    abi::Abi,
+    abi::CallingConv,
     next_token,
     token::{Keyword, Token},
 };
@@ -56,19 +56,19 @@ impl SyntaxTree {
 
             match token {
                 Token::Keyword(_, Keyword::Public) => {
-                    parse_definition(true, false, &mut it)
+                    parse_def(true, false, &mut it)
                         .map_or_else(|e| errs.push(e), |v| members.push(v))
                 }
                 Token::Keyword(_, Keyword::Function) => {
-                    parse_func_def(false, false, Abi::SystemV64, &mut it)
+                    parse_func_def(false, false, CallingConv::SystemV64, &mut it)
                         .map_or_else(|e| errs.push(e), |v| members.push(v))
                 }
                 Token::Keyword(_, Keyword::Extern) => {
-                    parse_definition(true, true, &mut it)
+                    parse_def(true, true, &mut it)
                         .map_or_else(|e| errs.push(e), |v| members.push(v))
                 }
-                Token::Keyword(_, Keyword::Abi) => {
-                    parse_abi(&mut it)
+                Token::Keyword(_, Keyword::CallConv) => {
+                    parse_callconv(&mut it)
                         .and_then(|abi| {
                             match_token!(it.next(), Token::Keyword(_, Keyword::Function), Ok(()))
                                 .and_then(|_| {

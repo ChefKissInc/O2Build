@@ -1,9 +1,3 @@
-extern func putchar(c);
+extern callconv "C" func putchar(c);
 
-public func main() => putchar('c');
-
-// Later ;)
-// public abi "SystemV64" func kernel_main(a: String) -> ReturnCode {
-//
-// }
-
+public func main() => putchar('o'); // Hello Oxygen!

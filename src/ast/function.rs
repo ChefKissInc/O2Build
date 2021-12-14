@@ -3,17 +3,17 @@ use std::slice::Iter;
 use debug_tree::add_branch;
 
 use super::{expression::parse_expr, statement::parse_block_expr, Node};
-use crate::{abi::Abi, match_token, token::Token};
+use crate::{abi::CallingConv, match_token, token::Token};
 
 #[derive(Debug, PartialEq)]
 pub struct FunctionPrototype {
     pub public: bool,
-    pub abi: Abi,
+    pub call_conv: CallingConv,
     pub symbol: String,
     pub args: Vec<Node>,
 }
 
-pub fn parse_args(it: &mut Iter<Token>) -> Result<Vec<Node>, Option<Token>> {
+fn parse_args(it: &mut Iter<Token>) -> Result<Vec<Node>, Option<Token>> {
     add_branch!("parse_args");
     let mut ret = vec![];
 
@@ -38,16 +38,17 @@ pub fn parse_args(it: &mut Iter<Token>) -> Result<Vec<Node>, Option<Token>> {
     }
 }
 
-pub fn parse_abi(it: &mut Iter<Token>) -> Result<Abi, Option<Token>> {
-    add_branch!("parse_abi");
+pub fn parse_callconv(it: &mut Iter<Token>) -> Result<CallingConv, Option<Token>> {
+    add_branch!("parse_callconv");
     let token = it.next();
 
     match_token!(
         token,
         Token::String(_, v),
         match v.as_str() {
-            "UEFI" => Ok(Abi::Uefi),
-            "SystemV64" => Ok(Abi::SystemV64),
+            "C" => Ok(CallingConv::C),
+            "SystemV64" => Ok(CallingConv::SystemV64),
+            "UEFI" => Ok(CallingConv::Uefi),
             _ => Err(Some(token.unwrap().clone())),
         }
     )
@@ -56,7 +57,7 @@ pub fn parse_abi(it: &mut Iter<Token>) -> Result<Abi, Option<Token>> {
 pub fn parse_func_def(
     public: bool,
     external: bool,
-    abi: Abi,
+    call_conv: CallingConv,
     it: &mut Iter<Token>,
 ) -> Result<Node, Option<Token>> {
     add_branch!("parse_func_def");
@@ -72,7 +73,7 @@ pub fn parse_func_def(
                 public,
                 symbol,
                 args,
-                abi,
+                call_conv,
             }))
         )
     } else {
@@ -92,7 +93,7 @@ pub fn parse_func_def(
                 public,
                 symbol,
                 args,
-                abi,
+                call_conv,
             },
             body,
         ))

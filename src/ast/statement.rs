@@ -16,7 +16,7 @@ pub fn parse_block_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token
     let mut ret = vec![];
 
     while it
-        .peeking_next(|t| matches!(**t, Token::RightBracket(_)))
+        .peeking_next(|&t| matches!(*t, Token::RightBracket(_)))
         .is_none()
     {
         ret.push(parse_statement(it)?)

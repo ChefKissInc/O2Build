@@ -44,6 +44,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
             .collect::<Vec<BasicMetadataTypeEnum>>();
         let fn_type = self.context.i64_type().fn_type(arg_types.as_slice(), false);
         let fn_val = self.module.add_function(&fn_proto.symbol, fn_type, linkage);
+        fn_val.set_call_conventions(fn_proto.call_conv as u32);
 
         for (i, arg) in fn_val.get_param_iter().enumerate() {
             if let Node::FunctionArgument(arg_name) = &fn_proto.args[i] {

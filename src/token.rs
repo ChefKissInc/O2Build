@@ -11,7 +11,7 @@ pub enum Keyword {
     Function, // func
     Variable, // let
     Mutable,  // mutable
-    Abi,      // abi
+    CallConv, // callconv
 }
 
 #[derive(Debug, Default, PartialEq, Clone, Copy)]

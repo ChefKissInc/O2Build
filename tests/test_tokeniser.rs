@@ -71,7 +71,7 @@ pub fn simple_with_string() {
                 Token::String(TokenPos { row: 0, column: 37 }, "Hello ".to_string()),
                 Token::Plus(TokenPos { row: 0, column: 46 }),
                 Token::String(TokenPos { row: 0, column: 48 }, "Oxygen".to_string()),
-                Token::RightBracket(TokenPos { row: 0, column: 58 }),
+                Token::RightBracket(TokenPos { row: 0, column: 57 }),
             ],
             vec![]
         )
