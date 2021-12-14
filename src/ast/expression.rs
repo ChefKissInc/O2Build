@@ -12,6 +12,7 @@ use crate::{
 pub enum Expression {
     IntegerLiteral(String),
     StringLiteral(String),
+    CharLiteral(char),
     Parenthesised(Box<Expression>),
     Block(Vec<Expression>),
     FunctionCall {
@@ -43,6 +44,29 @@ pub fn parse_left_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>
     match token {
         Some(Token::Integer(_, t)) => Ok(Expression::IntegerLiteral(t.clone())),
         Some(Token::String(_, t)) => Ok(Expression::StringLiteral(t.clone())),
+        Some(Token::Char(_, t)) => Ok(Expression::CharLiteral(*t)),
+        Some(Token::Identifier(_, ident)) => {
+            match_token!(it.next(), Token::LeftParen(_), Ok(()))?;
+
+            let mut args = vec![];
+
+            loop {
+                args.push(parse_expr(it)?);
+
+                match it.next() {
+                    // If no more arguments, return
+                    Some(Token::RightParen(_)) => {
+                        break Ok(Expression::FunctionCall {
+                            name: ident.clone(),
+                            args,
+                        })
+                    }
+                    Some(Token::Comma(_)) => continue,
+                    Some(token) => break Err(Some(token.clone())),
+                    None => break Err(None),
+                }
+            }
+        }
         Some(Token::LeftParen(_)) => parse_parenthesised_expr(it),
         Some(Token::Plus(_)) => parse_unary_expr(it, BinaryOp::Addition),
         Some(Token::Minus(_)) => parse_unary_expr(it, BinaryOp::Subtraction),

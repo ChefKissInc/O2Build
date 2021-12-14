@@ -1,4 +1,6 @@
-public func main() => 2 + 2 - 1;
+extern func putchar(c);
+
+public func main() => putchar('c');
 
 // Later ;)
 // public abi "SystemV64" func kernel_main(a: String) -> ReturnCode {

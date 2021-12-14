@@ -15,14 +15,25 @@ pub struct FunctionPrototype {
 
 pub fn parse_args(it: &mut Iter<Token>) -> Result<Vec<Node>, Option<Token>> {
     add_branch!("parse_args");
-    let ret = vec![];
+    let mut ret = vec![];
 
     loop {
-        let token = it.next();
+        match it.next() {
+            // If no more arguments, return
+            Some(Token::RightParen(_)) => break Ok(ret),
+            Some(Token::Identifier(_, ident)) => {
+                ret.push(Node::FunctionArgument(ident.clone()));
 
-        // If no more arguments, return
-        if match_token!(token, Token::RightParen(_), Ok(())).is_ok() {
-            break Ok(ret);
+                match it.next() {
+                    // If no more arguments, return
+                    Some(Token::RightParen(_)) => break Ok(ret),
+                    Some(Token::Comma(_)) => {}
+                    Some(token) => break Err(Some(token.clone())),
+                    None => break Err(None),
+                }
+            }
+            Some(token) => break Err(Some(token.clone())),
+            None => break Err(None),
         }
     }
 }
@@ -42,34 +53,48 @@ pub fn parse_abi(it: &mut Iter<Token>) -> Result<Abi, Option<Token>> {
     )
 }
 
-pub fn parse_function_definition(
+pub fn parse_func_def(
     public: bool,
+    external: bool,
     abi: Abi,
     it: &mut Iter<Token>,
 ) -> Result<Node, Option<Token>> {
-    add_branch!("parse_function_definition");
-    let symbol = match_token!(it.next(), Token::Identifier(_, v), Ok(v))?;
+    add_branch!("parse_func_def");
+    let symbol = match_token!(it.next(), Token::Identifier(_, v), Ok(v))?.clone();
     match_token!(it.next(), Token::LeftParen(_), Ok(()))?;
     let args = parse_args(it)?;
 
-    let body = match it.next() {
-        Some(Token::FatArrow(_)) => {
-            let ret = parse_expr(it);
-            match_token!(it.next(), Token::Semicolon(_), Ok(()))?;
-            ret
-        }
-        Some(Token::LeftBracket(_)) => parse_block_expr(it),
-        Some(token) => Err(Some(token.clone())),
-        None => Err(None),
-    }?;
+    if external {
+        match_token!(
+            it.next(),
+            Token::Semicolon(_),
+            Ok(Node::ExternalFunction(FunctionPrototype {
+                public,
+                symbol,
+                args,
+                abi,
+            }))
+        )
+    } else {
+        let body = match it.next() {
+            Some(Token::FatArrow(_)) => {
+                let ret = parse_expr(it);
+                match_token!(it.next(), Token::Semicolon(_), Ok(()))?;
+                ret
+            }
+            Some(Token::LeftBracket(_)) => parse_block_expr(it),
+            Some(token) => Err(Some(token.clone())),
+            None => Err(None),
+        }?;
 
-    Ok(Node::FunctionDefinition(
-        FunctionPrototype {
-            public,
-            symbol: symbol.clone(),
-            args,
-            abi,
-        },
-        body,
-    ))
+        Ok(Node::FunctionDefinition(
+            FunctionPrototype {
+                public,
+                symbol,
+                args,
+                abi,
+            },
+            body,
+        ))
+    }
 }

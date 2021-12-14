@@ -3,9 +3,10 @@ use debug_tree::add_branch;
 use self::{
     definition::parse_definition,
     expression::Expression,
-    function::{parse_abi, parse_function_definition, FunctionPrototype},
+    function::{parse_abi, parse_func_def, FunctionPrototype},
 };
 use crate::{
+    abi::Abi,
     next_token,
     token::{Keyword, Token},
 };
@@ -37,7 +38,7 @@ pub struct SyntaxTree {
 #[derive(Debug, PartialEq)]
 pub enum Node {
     Expression(Expression),
-    FunctionArgument,
+    FunctionArgument(String),
     StaticDecl,
     FunctionDefinition(FunctionPrototype, Expression),
     ExternalFunction(FunctionPrototype),
@@ -55,11 +56,15 @@ impl SyntaxTree {
 
             match token {
                 Token::Keyword(_, Keyword::Public) => {
-                    parse_definition(true, &mut it)
+                    parse_definition(true, false, &mut it)
                         .map_or_else(|e| errs.push(e), |v| members.push(v))
                 }
                 Token::Keyword(_, Keyword::Function) => {
-                    parse_definition(false, &mut it)
+                    parse_func_def(false, false, Abi::SystemV64, &mut it)
+                        .map_or_else(|e| errs.push(e), |v| members.push(v))
+                }
+                Token::Keyword(_, Keyword::Extern) => {
+                    parse_definition(true, true, &mut it)
                         .map_or_else(|e| errs.push(e), |v| members.push(v))
                 }
                 Token::Keyword(_, Keyword::Abi) => {
@@ -67,7 +72,7 @@ impl SyntaxTree {
                         .and_then(|abi| {
                             match_token!(it.next(), Token::Keyword(_, Keyword::Function), Ok(()))
                                 .and_then(|_| {
-                                    parse_function_definition(false, abi, &mut it)
+                                    parse_func_def(false, false, abi, &mut it)
                                         .map(|v| members.push(v))
                                 })
                         })

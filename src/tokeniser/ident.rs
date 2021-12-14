@@ -16,6 +16,7 @@ pub fn tokenise_identifier(pos: &mut TokenPos, c: char, it: &mut Chars) -> Token
 
     match ident.as_str() {
         "public" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Public),
+        "extern" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Extern),
         "abi" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Abi),
         "func" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Function),
         "let" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Variable),

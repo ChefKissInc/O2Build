@@ -1,10 +1,10 @@
 use inkwell::{
     builder::Builder,
     context::Context,
-    module::Module,
+    module::{Linkage, Module},
     passes::PassManager,
     types::BasicMetadataTypeEnum,
-    values::{FunctionValue, IntValue},
+    values::{BasicMetadataValueEnum, BasicValue, FunctionValue, IntValue},
 };
 
 use crate::ast::{
@@ -36,13 +36,23 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
     fn compile_fn_proto(
         &self,
         fn_proto: &FunctionPrototype,
+        linkage: Option<Linkage>,
     ) -> Result<FunctionValue<'ctx>, String> {
-        // TODO: Args
-        let fn_type = self
-            .context
-            .i64_type()
-            .fn_type(&Vec::<BasicMetadataTypeEnum>::new(), false);
-        let fn_val = self.module.add_function(&fn_proto.symbol, fn_type, None);
+        let arg_types = std::iter::repeat(self.context.i64_type())
+            .take(fn_proto.args.len())
+            .map(|f| f.into())
+            .collect::<Vec<BasicMetadataTypeEnum>>();
+        let fn_type = self.context.i64_type().fn_type(arg_types.as_slice(), false);
+        let fn_val = self.module.add_function(&fn_proto.symbol, fn_type, linkage);
+
+        for (i, arg) in fn_val.get_param_iter().enumerate() {
+            if let Node::FunctionArgument(arg_name) = &fn_proto.args[i] {
+                arg.into_int_value().set_name(arg_name.as_str());
+            } else {
+                unreachable!()
+            }
+        }
+
         Ok(fn_val)
     }
 
@@ -53,6 +63,35 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                     .context
                     .i64_type()
                     .const_int(lit.parse().unwrap(), false))
+            }
+            Expression::CharLiteral(c) => Ok(self.context.i64_type().const_int(*c as u64, false)),
+            Expression::FunctionCall { name, args } => {
+                match self.module.get_function(name.as_str()) {
+                    Some(func) => {
+                        let mut compiled_args = Vec::with_capacity(args.len());
+
+                        for arg in args {
+                            compiled_args.push(self.compile_expr(arg)?);
+                        }
+
+                        let argsv: Vec<BasicMetadataValueEnum> = compiled_args
+                            .iter()
+                            .by_ref()
+                            .map(|&val| val.into())
+                            .collect();
+
+                        match self
+                            .builder
+                            .build_call(func, argsv.as_slice(), "tmp")
+                            .try_as_basic_value()
+                            .left()
+                        {
+                            Some(val) => Ok(val.into_int_value()),
+                            None => Err(format!("Invalid call to function: {}", name)),
+                        }
+                    }
+                    None => Err(format!("Function not found: {}", name)),
+                }
             }
             Expression::Binary {
                 op,
@@ -76,7 +115,14 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
 
     fn compile_fn(&self, func: &Node) -> Result<FunctionValue<'ctx>, String> {
         if let Node::FunctionDefinition(fn_proto, body) = func {
-            let function = self.compile_fn_proto(fn_proto)?;
+            let function = self.compile_fn_proto(
+                fn_proto,
+                if fn_proto.public {
+                    None
+                } else {
+                    Some(Linkage::Private)
+                },
+            )?;
 
             let entry = self.context.append_basic_block(function, "entry");
             self.builder.position_at_end(entry);
@@ -101,6 +147,9 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
             match member {
                 Node::FunctionDefinition(_, _) => {
                     self.compile_fn(member)?;
+                }
+                Node::ExternalFunction(fn_proto) => {
+                    self.compile_fn_proto(fn_proto, Some(Linkage::External))?;
                 }
                 Node::StaticDecl => todo!(),
                 _ => panic!("This shouldn't be here"),

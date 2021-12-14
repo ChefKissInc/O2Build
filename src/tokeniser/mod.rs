@@ -52,12 +52,14 @@ impl Tokeniser for String {
                 ' ' => skip_spaces(&mut pos, &mut it),
                 '0'..='9' => tokens.push(tokenise_digit(&mut pos, c, &mut it)),
                 '"' => tokens.push(tokenise_str(&mut pos, &mut it)),
+                '\'' => tokens.push(tokenise_char(&mut pos, &mut it)),
                 'A'..='Z' | 'a'..='z' | '_' => {
                     tokens.push(tokenise_identifier(&mut pos, c, &mut it))
                 }
                 '(' => tokens.push(Token::LeftParen(pos)),
                 ')' => tokens.push(Token::RightParen(pos)),
                 ':' => tokens.push(Token::Colon(pos)),
+                ',' => tokens.push(Token::Comma(pos)),
                 '{' => tokens.push(Token::LeftBracket(pos)),
                 '}' => tokens.push(Token::RightBracket(pos)),
                 '-' => tokens.push(tokenise_minus(&mut pos, &mut it)),

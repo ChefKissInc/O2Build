@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![feature(derive_default_enum)]
 #![feature(path_file_prefix)]
 
 use std::path::Path;

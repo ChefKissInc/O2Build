@@ -6,11 +6,12 @@ pub enum TokenisationError {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Keyword {
-    Public,   // Public
-    Function, // Func
-    Variable, // Let
-    Mutable,  // Mutable
-    Abi,      // ABI
+    Public,   // public
+    Extern,   // extern
+    Function, // func
+    Variable, // let
+    Mutable,  // mutable
+    Abi,      // abi
 }
 
 #[derive(Debug, Default, PartialEq, Clone, Copy)]
@@ -25,9 +26,11 @@ pub enum Token {
     Identifier(TokenPos, String),
     Integer(TokenPos, String),
     String(TokenPos, String),
+    Char(TokenPos, char),
     LeftParen(TokenPos),
     RightParen(TokenPos),
     Colon(TokenPos),
+    Comma(TokenPos),
     Minus(TokenPos),
     Arrow(TokenPos),
     FatArrow(TokenPos),

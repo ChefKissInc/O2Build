@@ -18,3 +18,11 @@ pub fn tokenise_str(pos: &mut TokenPos, it: &mut Chars) -> Token {
     let lit = it.take_while(|c| *c != '"').collect::<String>();
     Token::String(incr_pos_by!(pos, lit.len() + 1), lit)
 }
+
+#[inline]
+pub fn tokenise_char(pos: &mut TokenPos, it: &mut Chars) -> Token {
+    let c = it.next().unwrap();
+    assert_ne!(c, '\'');
+    assert_eq!(it.next(), Some('\''));
+    Token::Char(incr_pos_by!(pos, 2), c)
+}
