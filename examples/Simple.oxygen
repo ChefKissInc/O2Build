@@ -1,3 +1,10 @@
-extern callconv "C" func putchar(c);
+Extern CallConv "C" Func puts(s: Str) -> Int;
+Extern CallConv "C" Func putchar(c: Int) -> Int;
 
-public func main() => putchar('o'); // Hello Oxygen!
+// Hello Oxygen!
+Public Func main() {
+    puts("Hello Oxygen!");
+    puts("But soon, hello UEFI!");
+    putchar(10);
+    puts("muahaahahaha");
+}

@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 itertools = "0.10.3"
 debug_tree = "0.4.0"
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = [
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", default-features = false, features = [
     "llvm13-0",
+    "target-x86",
+    "nightly",
 ] }

@@ -43,7 +43,7 @@ use inkwell::{
 };
 use MolecularRearranger::{ast::SyntaxTree, generator::Compiler, get_config, tokeniser::Tokeniser};
 
-fn main() -> Result<(), ()> {
+fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
     assert_eq!(args.len(), 2, "You must provide a path to an oxygen file");
     println!("Infusing: {}", args[1]);
@@ -79,26 +79,32 @@ fn main() -> Result<(), ()> {
     fpm.add_reassociate_pass();
     fpm.initialize();
 
-    let compiler = Compiler::new(&context, &builder, &fpm, &module);
+    Target::initialize_all(&InitializationConfig::default());
+
+    let triple = TargetTriple::create("x86_64-apple-darwin");
+    let target = Target::from_triple(&triple).expect("Failed to get target from target triple");
+    let target_machine = target
+        .create_target_machine(
+            &triple,
+            "generic",
+            "",
+            OptimizationLevel::Default,
+            RelocMode::Default,
+            CodeModel::Default,
+        )
+        .unwrap();
+
+    let compiler = Compiler::new(
+        &context,
+        &builder,
+        &fpm,
+        &module,
+        target_machine.get_target_data(),
+    );
     let res = compiler.compile_program(&program);
 
     if let Ok(ir) = res {
-        println!("\n\nLLVM IR:\n{}", ir);
-
-        Target::initialize_all(&InitializationConfig::default());
-
-        let triple = TargetTriple::create("x86_64-apple-darwin");
-        let target = Target::from_triple(&triple).expect("Failed to get target from target triple");
-        let target_machine = target
-            .create_target_machine(
-                &triple,
-                "generic",
-                "",
-                OptimizationLevel::Default,
-                RelocMode::Default,
-                CodeModel::Default,
-            )
-            .unwrap();
+        println!("\nLLVM IR:\n{}", ir);
 
         target_machine
             .write_to_file(&module, FileType::Assembly, Path::new("Build/out.as"))
@@ -110,10 +116,10 @@ fn main() -> Result<(), ()> {
 
         Ok(())
     } else {
-        println!(
-            "\n\n!! Failed to compile program: {} !!\n\n",
+        compiler.module.print_to_stderr();
+        Err(format!(
+            "Failed to compile program: {}",
             res.unwrap_err()
-        );
-        Err(())
+        ))
     }
 }

@@ -2,7 +2,7 @@ use std::slice::Iter;
 
 use debug_tree::add_branch;
 
-use super::{expression::parse_expr, statement::parse_block_expr, Node};
+use super::{expression::parse_expr, statement::parse_block_expr, typing::Type, Node};
 use crate::{abi::CallingConv, match_token, token::Token};
 
 #[derive(Debug, PartialEq)]
@@ -11,31 +11,7 @@ pub struct FunctionPrototype {
     pub call_conv: CallingConv,
     pub symbol: String,
     pub args: Vec<Node>,
-}
-
-fn parse_args(it: &mut Iter<Token>) -> Result<Vec<Node>, Option<Token>> {
-    add_branch!("parse_args");
-    let mut ret = vec![];
-
-    loop {
-        match it.next() {
-            // If no more arguments, return
-            Some(Token::RightParen(_)) => break Ok(ret),
-            Some(Token::Identifier(_, ident)) => {
-                ret.push(Node::FunctionArgument(ident.clone()));
-
-                match it.next() {
-                    // If no more arguments, return
-                    Some(Token::RightParen(_)) => break Ok(ret),
-                    Some(Token::Comma(_)) => {}
-                    Some(token) => break Err(Some(token.clone())),
-                    None => break Err(None),
-                }
-            }
-            Some(token) => break Err(Some(token.clone())),
-            None => break Err(None),
-        }
-    }
+    pub ret_type: Type,
 }
 
 pub fn parse_callconv(it: &mut Iter<Token>) -> Result<CallingConv, Option<Token>> {
@@ -54,6 +30,47 @@ pub fn parse_callconv(it: &mut Iter<Token>) -> Result<CallingConv, Option<Token>
     )
 }
 
+fn parse_args(it: &mut Iter<Token>) -> Result<Vec<Node>, Option<Token>> {
+    add_branch!("parse_args");
+    let mut ret = vec![];
+
+    loop {
+        match it.next() {
+            // If no more arguments, return
+            Some(Token::RightParen(_)) => break Ok(ret),
+            Some(Token::Identifier(_, ident)) => {
+                match_token!(it.next(), Token::Colon(_), Ok(()))?;
+                ret.push(Node::FunctionArgument(ident.clone(), parse_type(it)?));
+
+                match it.next() {
+                    // If no more arguments, return
+                    Some(Token::RightParen(_)) => break Ok(ret),
+                    Some(Token::Comma(_)) => {}
+                    Some(token) => break Err(Some(token.clone())),
+                    None => break Err(None),
+                }
+            }
+            Some(token) => break Err(Some(token.clone())),
+            None => break Err(None),
+        }
+    }
+}
+
+fn parse_type(it: &mut Iter<Token>) -> Result<Type, Option<Token>> {
+    let token = it.next();
+
+    match_token!(
+        token,
+        Token::Identifier(_, v),
+        match v.as_str() {
+            "Void" => Ok(Type::Void),
+            "Int" => Ok(Type::Int),
+            "Str" => Ok(Type::Str),
+            _ => Err(Some(token.unwrap().clone())),
+        }
+    )
+}
+
 pub fn parse_func_def(
     public: bool,
     external: bool,
@@ -65,6 +82,13 @@ pub fn parse_func_def(
     match_token!(it.next(), Token::LeftParen(_), Ok(()))?;
     let args = parse_args(it)?;
 
+    let ret_type = if match_token!(it.clone().next(), Token::Arrow(_), Ok(())).is_ok() {
+        it.next();
+        parse_type(it)?
+    } else {
+        Type::Void
+    };
+
     if external {
         match_token!(
             it.next(),
@@ -74,6 +98,7 @@ pub fn parse_func_def(
                 symbol,
                 args,
                 call_conv,
+                ret_type,
             }))
         )
     } else {
@@ -94,6 +119,7 @@ pub fn parse_func_def(
                 symbol,
                 args,
                 call_conv,
+                ret_type,
             },
             body,
         ))

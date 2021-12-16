@@ -15,12 +15,12 @@ pub fn tokenise_identifier(pos: &mut TokenPos, c: char, it: &mut Chars) -> Token
             .collect::<String>();
 
     match ident.as_str() {
-        "public" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Public),
-        "extern" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Extern),
-        "callconv" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::CallConv),
-        "func" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Function),
-        "let" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Variable),
-        "mutable" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Mutable),
+        "Public" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Public),
+        "Extern" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Extern),
+        "CallConv" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::CallConv),
+        "Func" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Function),
+        "Let" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Variable),
+        "Mutable" => Token::Keyword(incr_pos_by!(pos, ident.len() - 1), Keyword::Mutable),
         _ => Token::Identifier(incr_pos_by!(pos, ident.len() - 1), ident),
     }
 }

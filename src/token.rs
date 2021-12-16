@@ -6,12 +6,12 @@ pub enum TokenisationError {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Keyword {
-    Public,   // public
-    Extern,   // extern
-    Function, // func
-    Variable, // let
-    Mutable,  // mutable
-    CallConv, // callconv
+    Public,   // Public
+    Extern,   // Extern
+    Function, // Func
+    Variable, // Let
+    Mutable,  // Mutable
+    CallConv, // CallConv
 }
 
 #[derive(Debug, Default, PartialEq, Clone, Copy)]

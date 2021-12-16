@@ -1,26 +1,41 @@
 use std::slice::Iter;
 
 use debug_tree::add_branch;
-use itertools::PeekingNext;
 
 use super::expression::Expression;
-use crate::token::Token;
-
-pub fn parse_statement(_it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
-    add_branch!("parse_statement");
-    Err(None)
-}
+use crate::{ast::expression::parse_expr, token::Token};
 
 pub fn parse_block_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
     add_branch!("parse_block_expr");
     let mut ret = vec![];
 
-    while it
-        .peeking_next(|&t| matches!(*t, Token::RightBracket(_)))
-        .is_none()
-    {
-        ret.push(parse_statement(it)?)
+    match it.clone().next() {
+        // If no expressions, return
+        Some(Token::RightBracket(_)) => {
+            it.next();
+            return Ok(Expression::Block(ret));
+        }
+        Some(_) => {}
+        None => return Err(None),
     }
 
-    Ok(Expression::Block(ret))
+    loop {
+        ret.push(parse_expr(it)?);
+
+        match it.next() {
+            Some(Token::Semicolon(_)) => {
+                match it.clone().next() {
+                    // If no more expressions, return
+                    Some(Token::RightBracket(_)) => {
+                        it.next();
+                        break Ok(Expression::Block(ret));
+                    }
+                    Some(_) => continue,
+                    None => break Err(None),
+                }
+            }
+            Some(token) => break Err(Some(token.clone())),
+            None => break Err(None),
+        }
+    }
 }

@@ -3,7 +3,7 @@ use debug_tree::add_branch;
 use self::{
     definition::parse_def,
     expression::Expression,
-    function::{parse_callconv, parse_func_def, FunctionPrototype},
+    function::{parse_callconv, parse_func_def, FunctionPrototype}, typing::Type,
 };
 use crate::{
     abi::CallingConv,
@@ -17,6 +17,7 @@ pub mod definition;
 pub mod expression;
 pub mod function;
 pub mod statement;
+pub mod typing;
 
 #[macro_export]
 macro_rules! match_token {
@@ -38,7 +39,7 @@ pub struct SyntaxTree {
 #[derive(Debug, PartialEq)]
 pub enum Node {
     Expression(Expression),
-    FunctionArgument(String),
+    FunctionArgument(String, Type),
     StaticDecl,
     FunctionDefinition(FunctionPrototype, Expression),
     ExternalFunction(FunctionPrototype),

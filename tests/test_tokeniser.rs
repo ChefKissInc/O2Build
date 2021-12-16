@@ -3,7 +3,7 @@ use MolecularRearranger::{token::*, tokeniser::Tokeniser};
 #[test]
 pub fn simple() {
     assert_eq!(
-        "func simple() { a += b; }".to_string().tokenise(),
+        "Func simple() { a += b; }".to_string().tokenise(),
         (
             vec![
                 Token::Keyword(TokenPos { row: 0, column: 1 }, Keyword::Function),
@@ -25,7 +25,7 @@ pub fn simple() {
 #[test]
 pub fn simple_with_digit() {
     assert_eq!(
-        "func simpleWithDigit() -> QWord { 1 + 2 }"
+        "Func simpleWithDigit() -> QWord { 1 + 2 }"
             .to_string()
             .tokenise(),
         (
@@ -53,7 +53,7 @@ pub fn simple_with_digit() {
 #[test]
 pub fn simple_with_string() {
     assert_eq!(
-        "func simpleWithString() -> String { \"Hello \" + \"Oxygen\" }"
+        "Func simpleWithString() -> String { \"Hello \" + \"Oxygen\" }"
             .to_string()
             .tokenise(),
         (
