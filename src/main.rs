@@ -37,7 +37,7 @@ use std::{fs, path::Path};
 use debug_tree::add_branch;
 use inkwell::{
     context::Context,
-    passes::PassManager,
+    passes::{PassManager, PassRegistry},
     targets::{CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetTriple},
     OptimizationLevel,
 };
@@ -68,20 +68,39 @@ fn main() -> Result<(), String> {
     module.set_source_file_name(&args[1]);
     let builder = context.create_builder();
 
-    let fpm = PassManager::create(&module);
-    fpm.add_instruction_combining_pass();
-    fpm.add_reassociate_pass();
-    fpm.add_gvn_pass();
-    fpm.add_cfg_simplification_pass();
-    fpm.add_basic_alias_analysis_pass();
-    fpm.add_promote_memory_to_register_pass();
-    fpm.add_instruction_combining_pass();
-    fpm.add_reassociate_pass();
-    fpm.initialize();
+    let pass_registry = PassRegistry::get_global();
+    pass_registry.initialize_core();
+    pass_registry.initialize_transform_utils();
+    pass_registry.initialize_scalar_opts();
+    pass_registry.initialize_obj_carc_opts();
+    pass_registry.initialize_vectorization();
+    pass_registry.initialize_inst_combine();
+    pass_registry.initialize_ipo();
+    pass_registry.initialize_instrumentation();
+    pass_registry.initialize_analysis();
+    pass_registry.initialize_ipa();
+    pass_registry.initialize_codegen();
+    pass_registry.initialize_target();
 
-    Target::initialize_all(&InitializationConfig::default());
+    let func_pm = PassManager::create(&module);
+    func_pm.add_verifier_pass();
+    func_pm.add_custom_pass("lint");
+    func_pm.add_instruction_combining_pass();
+    func_pm.add_reassociate_pass();
+    func_pm.add_new_gvn_pass();
+    func_pm.add_cfg_simplification_pass();
+    func_pm.add_basic_alias_analysis_pass();
+    func_pm.add_promote_memory_to_register_pass();
+    func_pm.add_instruction_combining_pass();
+    func_pm.add_reassociate_pass();
+    func_pm.initialize();
+    let mpm = PassManager::create(());
+    mpm.add_custom_pass("instprof");
+
+    Target::initialize_x86(&InitializationConfig::default());
 
     let triple = TargetTriple::create("x86_64-apple-darwin");
+    module.set_triple(&triple);
     let target = Target::from_triple(&triple).expect("Failed to get target from target triple");
     let target_machine = target
         .create_target_machine(
@@ -93,15 +112,17 @@ fn main() -> Result<(), String> {
             CodeModel::Default,
         )
         .unwrap();
+    module.set_data_layout(&target_machine.get_target_data().get_data_layout());
 
     let compiler = Compiler::new(
         &context,
         &builder,
-        &fpm,
+        &func_pm,
         &module,
         target_machine.get_target_data(),
     );
     let res = compiler.compile_program(&program);
+    mpm.run_on(&module);
 
     if let Ok(ir) = res {
         println!("\nLLVM IR:\n{}", ir);
@@ -117,9 +138,6 @@ fn main() -> Result<(), String> {
         Ok(())
     } else {
         compiler.module.print_to_stderr();
-        Err(format!(
-            "Failed to compile program: {}",
-            res.unwrap_err()
-        ))
+        Err(format!("Failed to compile program: {}", res.unwrap_err()))
     }
 }

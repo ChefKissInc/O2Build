@@ -50,6 +50,19 @@ pub fn parse_left_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>
 
             let mut args = vec![];
 
+            // If no args, return
+            match it.clone().next() {
+                Some(Token::RightParen(_)) => {
+                    it.next();
+                    return Ok(Expression::FunctionCall {
+                        name: ident.clone(),
+                        args,
+                    });
+                }
+                Some(_) => {}
+                None => return Err(None),
+            }
+
             loop {
                 args.push(parse_expr(it)?);
 

@@ -3,7 +3,8 @@ use debug_tree::add_branch;
 use self::{
     definition::parse_def,
     expression::Expression,
-    function::{parse_callconv, parse_func_def, FunctionPrototype}, typing::Type,
+    function::{parse_callconv, parse_func_def, FunctionPrototype},
+    typing::Type,
 };
 use crate::{
     abi::CallingConv,

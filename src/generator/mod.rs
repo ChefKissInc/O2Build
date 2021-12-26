@@ -135,7 +135,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
 
                         Ok(self
                             .builder
-                            .build_call(func, argsv.as_slice(), "tmp")
+                            .build_call(func, argsv.as_slice(), "")
                             .try_as_basic_value()
                             .left())
                     }
@@ -170,21 +170,21 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                     BinaryOp::Addition => {
                         Ok(Some(
                             self.builder
-                                .build_int_add(lhs.into_int_value(), rhs.into_int_value(), "tmpadd")
+                                .build_int_add(lhs.into_int_value(), rhs.into_int_value(), "")
                                 .as_basic_value_enum(),
                         ))
                     }
                     BinaryOp::Subtraction => {
                         Ok(Some(
                             self.builder
-                                .build_int_sub(lhs.into_int_value(), rhs.into_int_value(), "tmpsub")
+                                .build_int_sub(lhs.into_int_value(), rhs.into_int_value(), "")
                                 .as_basic_value_enum(),
                         ))
                     }
                     BinaryOp::Multiplication => {
                         Ok(Some(
                             self.builder
-                                .build_int_mul(lhs.into_int_value(), rhs.into_int_value(), "tmpmul")
+                                .build_int_mul(lhs.into_int_value(), rhs.into_int_value(), "")
                                 .as_basic_value_enum(),
                         ))
                     }
@@ -194,7 +194,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                                 .build_int_signed_div(
                                     lhs.into_int_value(),
                                     rhs.into_int_value(),
-                                    "tmpdiv",
+                                    "",
                                 )
                                 .as_basic_value_enum(),
                         ))
@@ -244,7 +244,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                     self.compile_fn(member)?;
                 }
                 Node::ExternalFunction(fn_proto) => {
-                    self.compile_fn_proto(fn_proto, Some(Linkage::External))?;
+                    self.compile_fn_proto(fn_proto, Some(Linkage::ExternalWeak))?;
                 }
                 Node::StaticDecl => todo!(),
                 _ => panic!("This shouldn't be here"),

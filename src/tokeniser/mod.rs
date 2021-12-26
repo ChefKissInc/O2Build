@@ -37,7 +37,10 @@ impl Tokeniser for String {
         let mut tokens = Vec::new();
         let mut errs = Vec::new();
         let mut it = self.trim().chars();
-        let mut pos = TokenPos::default();
+        let mut pos = TokenPos {
+            row: 1,
+            ..TokenPos::default()
+        };
 
         loop {
             pos.column += 1;
