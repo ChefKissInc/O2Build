@@ -1,20 +1,21 @@
 use std::slice::Iter;
 
+use cranelift::prelude::isa::CallConv;
 use debug_tree::add_branch;
 
 use super::{expression::parse_expr, statement::parse_block_expr, typing::Type, Node};
-use crate::{abi::CallingConv, match_token, token::Token};
+use crate::{match_token, token::Token};
 
 #[derive(Debug, PartialEq)]
 pub struct FunctionPrototype {
     pub public: bool,
-    pub call_conv: CallingConv,
+    pub call_conv: CallConv,
     pub symbol: String,
     pub args: Vec<Node>,
     pub ret_type: Type,
 }
 
-pub fn parse_callconv(it: &mut Iter<Token>) -> Result<CallingConv, Option<Token>> {
+pub fn parse_callconv(it: &mut Iter<Token>) -> Result<CallConv, Option<Token>> {
     add_branch!("parse_callconv");
     let token = it.next();
 
@@ -22,9 +23,8 @@ pub fn parse_callconv(it: &mut Iter<Token>) -> Result<CallingConv, Option<Token>
         token,
         Token::String(_, v),
         match v.as_str() {
-            "C" => Ok(CallingConv::C),
-            "SystemV64" => Ok(CallingConv::SystemV64),
-            "UEFI" => Ok(CallingConv::Uefi),
+            "C" | "SystemV64" => Ok(CallConv::SystemV),
+            "UEFI" => Ok(CallConv::WindowsFastcall),
             _ => Err(Some(token.unwrap().clone())),
         }
     )
@@ -74,7 +74,7 @@ fn parse_type(it: &mut Iter<Token>) -> Result<Type, Option<Token>> {
 pub fn parse_func_def(
     public: bool,
     external: bool,
-    call_conv: CallingConv,
+    call_conv: CallConv,
     it: &mut Iter<Token>,
 ) -> Result<Node, Option<Token>> {
     add_branch!("parse_func_def");

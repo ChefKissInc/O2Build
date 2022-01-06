@@ -1,3 +1,4 @@
+use cranelift::prelude::isa::CallConv;
 use debug_tree::add_branch;
 
 use self::{
@@ -7,7 +8,6 @@ use self::{
     typing::Type,
 };
 use crate::{
-    abi::CallingConv,
     next_token,
     token::{Keyword, Token},
 };
@@ -62,7 +62,7 @@ impl SyntaxTree {
                         .map_or_else(|e| errs.push(e), |v| members.push(v))
                 }
                 Token::Keyword(_, Keyword::Function) => {
-                    parse_func_def(false, false, CallingConv::SystemV64, &mut it)
+                    parse_func_def(false, false, CallConv::SystemV, &mut it)
                         .map_or_else(|e| errs.push(e), |v| members.push(v))
                 }
                 Token::Keyword(_, Keyword::Extern) => {

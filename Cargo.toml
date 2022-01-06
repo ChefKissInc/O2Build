@@ -1,19 +1,12 @@
 [package]
-name = "MolecularRearranger"
+name = "O2Build"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 itertools = "0.10"
 debug_tree = "0.4"
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", default-features = false, features = [
-    "llvm13-0",
-    "target-x86",
-    "nightly",
-] }
-
-[patch."https://github.com/TheDan64/inkwell"]
-inkwell = { path = "../inkwell" }
-
-[features]
-"llvm13-0" = []
+cranelift = "0.79.1"
+cranelift-module = "0.79.1"
+cranelift-object = "0.79.1"
+target-lexicon = "0.12.2"

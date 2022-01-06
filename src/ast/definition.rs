@@ -1,10 +1,10 @@
 use std::slice::Iter;
 
+use cranelift::prelude::isa::CallConv;
 use debug_tree::add_branch;
 
 use super::function::{parse_callconv, parse_func_def};
 use crate::{
-    abi::CallingConv,
     ast::Node,
     match_token, next_token,
     token::{Keyword, Token},
@@ -20,7 +20,7 @@ pub fn parse_def(
 
     match token {
         Token::Keyword(_, Keyword::Function) => {
-            parse_func_def(public, external, CallingConv::SystemV64, it)
+            parse_func_def(public, external, CallConv::SystemV, it)
         }
         Token::Keyword(_, Keyword::CallConv) => {
             let abi = parse_callconv(it)?;
