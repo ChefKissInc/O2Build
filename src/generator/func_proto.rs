@@ -35,18 +35,11 @@ impl super::Generator {
             call_conv: fn_proto.call_conv,
         };
 
-        let id = match self
+        let id = self
             .module
             .declare_function(&fn_proto.symbol, linkage, &signature)
-        {
-            Ok(v) => v,
-            Err(e) => {
-                return Err(format!(
-                    "Failed to declare function '{:?}': {:?}",
-                    fn_proto, e
-                ));
-            }
-        };
+            .map_err(|e| e.to_string())?;
+
         self.functions.insert(
             fn_proto.symbol.clone(),
             super::CompiledFunction {

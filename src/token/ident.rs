@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[inline]
-pub fn tokenise_identifier(pos: &mut TokenPos, c: char, it: &mut Chars) -> Token {
+pub(crate) fn tokenise_identifier(pos: &mut TokenPos, c: char, it: &mut Chars) -> Token {
     let ident = c.to_string()
         + &it
             .take_while_ref(|v| matches!(*v, 'a'..='z' | 'A'..='Z' | '0'..='9' | '_'))

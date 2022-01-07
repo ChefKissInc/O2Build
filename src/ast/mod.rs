@@ -13,7 +13,6 @@ use crate::{
 };
 
 pub mod binary;
-pub mod comparison;
 pub mod definition;
 pub mod expression;
 pub mod function;

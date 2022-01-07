@@ -15,7 +15,6 @@ use crate::ast::Node;
 impl super::Generator {
     pub fn gen_func(&mut self, func: &Node) -> Result<FuncId, String> {
         if let Node::FunctionDefinition(fn_proto, body) = func {
-            let mut context = self.module.make_context();
             let (function, signature) = self.gen_func_proto(
                 fn_proto,
                 if fn_proto.public {
@@ -24,9 +23,9 @@ impl super::Generator {
                     Linkage::Local
                 },
             )?;
-            context.func.signature = signature;
+            self.ctx.func.signature = signature;
 
-            let mut builder = FunctionBuilder::new(&mut context.func, &mut self.builder_context);
+            let mut builder = FunctionBuilder::new(&mut self.ctx.func, &mut self.builder_ctx);
 
             let entry = builder.create_block();
             builder.append_block_params_for_function_params(entry);
@@ -39,6 +38,7 @@ impl super::Generator {
                 builder,
                 functions: &self.functions,
                 module: &mut self.module,
+                data_ctx: &mut self.data_ctx,
             };
 
             match generator.gen_expr(body)? {
@@ -48,28 +48,24 @@ impl super::Generator {
 
             generator.builder.finalize();
 
-            println!("{}", context.func.display());
-            match self.module.define_function(
-                function,
-                &mut context,
-                &mut NullTrapSink {},
-                &mut NullStackMapSink {},
-            ) {
-                Ok(_) => {}
-                Err(e) => {
-                    if let ModuleError::Compilation(CodegenError::Verifier(VerifierErrors(ce))) = e
+            println!("{}", self.ctx.func.display());
+            self.module
+                .define_function(
+                    function,
+                    &mut self.ctx,
+                    &mut NullTrapSink {},
+                    &mut NullStackMapSink {},
+                )
+                .map_err(|e| {
+                    if let ModuleError::Compilation(CodegenError::Verifier(VerifierErrors(errs))) =
+                        e
                     {
-                        return Err(format!(
-                            "Failed to define function '{:?}': Compilation error: Verifier \
-                             errors: {:?}",
-                            fn_proto, ce
-                        ));
+                        format!("Compilation error: Verifier errors: {:#?}", errs)
                     } else {
-                        return Err(format!("Failed to define function '{:?}': {}", fn_proto, e));
+                        e.to_string()
                     }
-                }
-            };
-            self.module.clear_context(&mut context);
+                })?;
+            self.module.clear_context(&mut self.ctx);
 
             Ok(function)
         } else {

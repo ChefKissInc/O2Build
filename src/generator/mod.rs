@@ -17,38 +17,30 @@ pub struct CompiledFunction {
 }
 
 pub struct Generator {
-    builder_context: FunctionBuilderContext,
+    builder_ctx: FunctionBuilderContext,
     functions: HashMap<String, CompiledFunction>,
     ctx: codegen::Context,
     data_ctx: DataContext,
-    module: ObjectModule,
+    pub module: ObjectModule,
 }
 
-impl Default for Generator {
-    fn default() -> Self {
+impl Generator {
+    pub fn new(isa: Box<dyn isa::TargetIsa>, name: &str) -> Self {
         let module = ObjectModule::new(
-            ObjectBuilder::new(
-                isa::lookup_by_name("x86_64-apple-darwin")
-                    .unwrap()
-                    .finish(settings::Flags::new(settings::builder())),
-                "Idk",
-                cranelift_module::default_libcall_names(),
-            )
-            .unwrap(),
+            ObjectBuilder::new(isa, name, cranelift_module::default_libcall_names()).unwrap(),
         );
+
         Self {
-            builder_context: FunctionBuilderContext::new(),
+            builder_ctx: FunctionBuilderContext::new(),
             functions: HashMap::new(),
             ctx: module.make_context(),
             data_ctx: DataContext::new(),
             module,
         }
     }
-}
 
-impl Generator {
-    pub fn compile_program(&mut self, program: &SyntaxTree) -> Result<(), String> {
-        for member in &program.members {
+    pub fn gen_program(&mut self, syntax_tree: &SyntaxTree) -> Result<(), String> {
+        for member in &syntax_tree.members {
             match member {
                 Node::FunctionDefinition(_, _) => {
                     self.gen_func(member)?;
@@ -57,7 +49,7 @@ impl Generator {
                     self.gen_func_proto(fn_proto, Linkage::Import)?;
                 }
                 Node::StaticDecl => todo!(),
-                _ => panic!("This shouldn't be here"),
+                _ => panic!("Bug: {:?} shouldn't be in the syntax tree root", member),
             }
         }
 

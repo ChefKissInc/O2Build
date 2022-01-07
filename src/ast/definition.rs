@@ -10,7 +10,7 @@ use crate::{
     token::{Keyword, Token},
 };
 
-pub fn parse_def(
+pub(crate) fn parse_def(
     public: bool,
     external: bool,
     it: &mut Iter<Token>,

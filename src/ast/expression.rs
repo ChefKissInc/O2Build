@@ -30,14 +30,14 @@ pub enum Expression {
     },
 }
 
-pub fn parse_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
+pub(crate) fn parse_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
     add_branch!("parse_expr");
     let left_expr = parse_left_expr(it)?;
 
     parse_right_expr(it, 0, left_expr)
 }
 
-pub fn parse_left_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
+pub(crate) fn parse_left_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
     add_branch!("parse_left_expr");
     let token = it.next();
 
@@ -88,14 +88,14 @@ pub fn parse_left_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>
     }
 }
 
-pub fn parse_parenthesised_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
+pub(crate) fn parse_parenthesised_expr(it: &mut Iter<Token>) -> Result<Expression, Option<Token>> {
     add_branch!("parse_parenthesised_expr");
     let expr = Box::new(parse_expr(it)?);
     match_token!(it.next(), Token::RightParen(_), Ok(()))?;
     Ok(Expression::Parenthesised(expr))
 }
 
-pub fn parse_right_expr(
+pub(crate) fn parse_right_expr(
     it: &mut Iter<Token>,
     precedence: i8,
     mut left_expr: Expression,
@@ -144,7 +144,7 @@ pub fn parse_right_expr(
     }
 }
 
-pub fn parse_unary_expr(it: &mut Iter<Token>, op: BinaryOp) -> Result<Expression, Option<Token>> {
+pub(crate) fn parse_unary_expr(it: &mut Iter<Token>, op: BinaryOp) -> Result<Expression, Option<Token>> {
     add_branch!("parse_unary_expr");
     let expr = Box::new(parse_left_expr(it)?);
     Ok(Expression::Unary { op, expr })

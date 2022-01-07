@@ -15,7 +15,7 @@ pub struct FunctionPrototype {
     pub ret_type: Type,
 }
 
-pub fn parse_callconv(it: &mut Iter<Token>) -> Result<CallConv, Option<Token>> {
+pub(crate) fn parse_callconv(it: &mut Iter<Token>) -> Result<CallConv, Option<Token>> {
     add_branch!("parse_callconv");
     let token = it.next();
 
@@ -71,7 +71,7 @@ fn parse_type(it: &mut Iter<Token>) -> Result<Type, Option<Token>> {
     )
 }
 
-pub fn parse_func_def(
+pub(crate) fn parse_func_def(
     public: bool,
     external: bool,
     call_conv: CallConv,
