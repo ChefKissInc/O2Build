@@ -3,10 +3,9 @@ use std::collections::HashMap;
 use cranelift::prelude::*;
 use cranelift_module::{DataContext, FuncId, Linkage, Module};
 use cranelift_object::{ObjectBuilder, ObjectModule};
+use Oxygen::ast::{Node, SyntaxTree};
 
-use crate::ast::{Node, SyntaxTree};
-
-mod expr;
+mod func_codegen;
 mod func_def;
 mod func_proto;
 
@@ -16,7 +15,7 @@ pub struct CompiledFunction {
     pub param_count: usize,
 }
 
-pub struct Generator {
+pub struct CodeGen {
     builder_ctx: FunctionBuilderContext,
     functions: HashMap<String, CompiledFunction>,
     ctx: codegen::Context,
@@ -24,7 +23,7 @@ pub struct Generator {
     pub module: ObjectModule,
 }
 
-impl Generator {
+impl CodeGen {
     pub fn new(isa: Box<dyn isa::TargetIsa>, name: &str) -> Self {
         let module = ObjectModule::new(
             ObjectBuilder::new(isa, name, cranelift_module::default_libcall_names()).unwrap(),
@@ -39,7 +38,7 @@ impl Generator {
         }
     }
 
-    pub fn gen_program(&mut self, syntax_tree: &SyntaxTree) -> Result<(), String> {
+    pub fn gen_module(&mut self, syntax_tree: &SyntaxTree) -> Result<(), String> {
         for member in &syntax_tree.members {
             match member {
                 Node::FunctionDefinition(_, _) => {

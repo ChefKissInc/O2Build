@@ -1,10 +1,9 @@
 use cranelift::prelude::*;
-
-use crate::ast::{binary::BinaryOp, expression::Expression};
+use Oxygen::ast::{binary::BinaryOp, expression::Expression};
 
 #[inline]
 pub fn gen_binary_expr(
-    generator: &mut super::FunctionGenerator,
+    generator: &mut super::FuncCodeGen,
     op: &BinaryOp,
     left_expr: &Expression,
     right_expr: &Expression,

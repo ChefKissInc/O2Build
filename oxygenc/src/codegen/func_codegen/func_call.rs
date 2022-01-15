@@ -1,11 +1,10 @@
 use cranelift::prelude::*;
 use cranelift_module::Module;
-
-use crate::ast::expression::Expression;
+use Oxygen::ast::expression::Expression;
 
 #[inline]
 pub fn gen_func_call(
-    generator: &mut super::FunctionGenerator,
+    generator: &mut super::FuncCodeGen,
     name: &str,
     args: &[Expression],
 ) -> Result<Option<Value>, String> {

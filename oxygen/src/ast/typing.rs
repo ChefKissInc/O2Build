@@ -1,6 +1,6 @@
 //! Fake typing, Lol
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     Void,
     Int,

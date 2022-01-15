@@ -1,9 +1,8 @@
-use cranelift::prelude::*;
+use cranelift::prelude::{isa::CallConv, *};
 use cranelift_module::{FuncId, Linkage, Module};
+use Oxygen::ast::{function::FunctionPrototype, typing::Type, Node};
 
-use crate::ast::{function::FunctionPrototype, typing::Type, Node};
-
-impl super::Generator {
+impl super::CodeGen {
     pub fn gen_func_proto(
         &mut self,
         fn_proto: &FunctionPrototype,
@@ -32,7 +31,11 @@ impl super::Generator {
                 }
                 Type::Void => vec![],
             },
-            call_conv: fn_proto.call_conv,
+            call_conv: match fn_proto.call_conv {
+                Oxygen::abi::CallConv::C => self.module.isa().default_call_conv(),
+                Oxygen::abi::CallConv::SystemV => CallConv::SystemV,
+                Oxygen::abi::CallConv::UEFI => CallConv::WindowsFastcall,
+            },
         };
 
         let id = self

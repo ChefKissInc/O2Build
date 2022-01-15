@@ -1,10 +1,9 @@
 use cranelift::prelude::*;
-
-use crate::ast::expression::Expression;
+use Oxygen::ast::expression::Expression;
 
 #[inline]
 pub fn gen_block_expr(
-    generator: &mut super::FunctionGenerator,
+    generator: &mut super::FuncCodeGen,
     exprs: &[Expression],
 ) -> Result<Option<Value>, String> {
     for expr in exprs {

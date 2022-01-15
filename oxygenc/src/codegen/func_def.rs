@@ -8,11 +8,11 @@ use cranelift::{
     prelude::*,
 };
 use cranelift_module::{FuncId, Linkage, Module, ModuleError};
+use Oxygen::ast::Node;
 
-use super::expr::FunctionGenerator;
-use crate::ast::Node;
+use super::func_codegen::FuncCodeGen;
 
-impl super::Generator {
+impl super::CodeGen {
     pub fn gen_func(&mut self, func: &Node) -> Result<FuncId, String> {
         if let Node::FunctionDefinition(fn_proto, body) = func {
             let (function, signature) = self.gen_func_proto(
@@ -34,7 +34,7 @@ impl super::Generator {
 
             self.functions.get_mut(&fn_proto.symbol).unwrap().defined = true;
 
-            let mut generator = FunctionGenerator {
+            let mut generator = FuncCodeGen {
                 builder,
                 functions: &self.functions,
                 module: &mut self.module,
