@@ -1,7 +1,9 @@
 [package]
-name = "Oxygen"
+name = "oxygen"
 version = "0.1.0"
 edition = "2021"
+publish = false
+license-file = "../LICENSE"
 
 [dependencies]
 peg = "0.8.0"

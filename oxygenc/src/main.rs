@@ -1,4 +1,7 @@
-#![allow(non_snake_case)]
+/*
+ * Copyright (c) VisualDevelopment 2021-2021.
+ * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
+ */
 
 use std::{fs, io::BufWriter};
 
@@ -12,7 +15,7 @@ use codespan_reporting::{
         termcolor::{ColorChoice, StandardStream},
     },
 };
-use Oxygen::grammar;
+use oxygen::grammar;
 
 use crate::opts::Options;
 

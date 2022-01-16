@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) VisualDevelopment 2021-2021.
+ * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
+ */
+
 use std::collections::HashMap;
 
 use cranelift::prelude::*;
 use cranelift_module::{DataContext, FuncId, Linkage, Module};
 use cranelift_object::{ObjectBuilder, ObjectModule};
-use Oxygen::ast::{Node, SyntaxTree};
+use oxygen::ast::{Node, SyntaxTree};
 
 mod func_codegen;
 mod func_def;

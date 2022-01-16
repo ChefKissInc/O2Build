@@ -1,11 +1,13 @@
 [package]
-name = "OxygenC"
+name = "oxygenc"
 version = "0.1.0"
 edition = "2021"
+publish = false
+license-file = "../LICENSE"
 
 [dependencies]
 anyhow = "1.0.52"
-Oxygen = { path = "../oxygen" }
+oxygen = { path = "../oxygen" }
 clap = { version = "3.0.7", features = [
     "derive",
     "env",

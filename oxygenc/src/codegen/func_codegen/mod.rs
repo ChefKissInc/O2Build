@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) VisualDevelopment 2021-2021.
+ * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
+ */
+
 use std::collections::HashMap;
 
 use cranelift::{frontend::FunctionBuilder, prelude::*};
 use cranelift_module::DataContext;
 use cranelift_object::ObjectModule;
-use Oxygen::ast::expression::Expression;
+use oxygen::ast::expression::Expression;
 
 use self::{binary::gen_binary_expr, block::gen_block_expr, func_call::gen_func_call, literals::*};
 use super::CompiledFunction;

@@ -1,5 +1,10 @@
+/*
+ * Copyright (c) VisualDevelopment 2021-2021.
+ * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
+ */
+
 use cranelift::prelude::*;
-use Oxygen::ast::{binary::BinaryOp, expression::Expression};
+use oxygen::ast::{binary::BinaryOp, expression::Expression};
 
 #[inline]
 pub fn gen_binary_expr(

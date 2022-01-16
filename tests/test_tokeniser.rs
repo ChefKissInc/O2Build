@@ -1,4 +1,4 @@
-use Oxygen::token::*;
+use oxygen::token::*;
 
 #[test]
 pub fn simple() {

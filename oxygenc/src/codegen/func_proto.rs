@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) VisualDevelopment 2021-2021.
+ * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
+ */
+
 use cranelift::prelude::{isa::CallConv, *};
 use cranelift_module::{FuncId, Linkage, Module};
-use Oxygen::ast::{function::FunctionPrototype, typing::Type, Node};
+use oxygen::ast::{function::FunctionPrototype, typing::Type, Node};
 
 impl super::CodeGen {
     pub fn gen_func_proto(
@@ -32,9 +37,9 @@ impl super::CodeGen {
                 Type::Void => vec![],
             },
             call_conv: match fn_proto.call_conv {
-                Oxygen::abi::CallConv::C => self.module.isa().default_call_conv(),
-                Oxygen::abi::CallConv::SystemV => CallConv::SystemV,
-                Oxygen::abi::CallConv::UEFI => CallConv::WindowsFastcall,
+                oxygen::abi::CallConv::C => self.module.isa().default_call_conv(),
+                oxygen::abi::CallConv::SystemV => CallConv::SystemV,
+                oxygen::abi::CallConv::UEFI => CallConv::WindowsFastcall,
             },
         };
 
