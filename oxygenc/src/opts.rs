@@ -1,7 +1,5 @@
-/*
- * Copyright (c) VisualDevelopment 2021-2021.
- * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
- */
+//! Copyright (c) ChefKiss Inc 2021-2022.
+//! This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives license.
 
 use clap::Parser;
 use cranelift::prelude::*;
@@ -23,8 +21,9 @@ impl Options {
     pub fn to_target_isa(&self) -> Box<dyn isa::TargetIsa> {
         let mut builder = settings::builder();
         builder.set("is_pic", "true").unwrap();
-        isa::lookup_by_name("x86_64-apple-darwin")
+        isa::lookup_by_name("arm64-apple-darwin")
             .unwrap()
             .finish(settings::Flags::new(builder))
+            .unwrap()
     }
 }

@@ -1,14 +1,8 @@
-/*
- * Copyright (c) VisualDevelopment 2021-2021.
- * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
- */
+//! Copyright (c) ChefKiss Inc 2021-2022.
+//! This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives license.
 
 use cranelift::{
-    codegen::{
-        binemit::{NullStackMapSink, NullTrapSink},
-        verifier::VerifierErrors,
-        CodegenError,
-    },
+    codegen::{verifier::VerifierErrors, CodegenError},
     frontend::FunctionBuilder,
     prelude::*,
 };
@@ -55,12 +49,7 @@ impl super::CodeGen {
 
             println!("{}", self.ctx.func.display());
             self.module
-                .define_function(
-                    function,
-                    &mut self.ctx,
-                    &mut NullTrapSink {},
-                    &mut NullStackMapSink {},
-                )
+                .define_function(function, &mut self.ctx)
                 .map_err(|e| {
                     if let ModuleError::Compilation(CodegenError::Verifier(VerifierErrors(errs))) =
                         e

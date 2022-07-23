@@ -1,9 +1,7 @@
-/*
- * Copyright (c) VisualDevelopment 2021-2021.
- * This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives licence.
- */
+//! Copyright (c) ChefKiss Inc 2021-2022.
+//! This project is licensed by the Creative Commons Attribution-NoCommercial-NoDerivatives license.
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Type {
     Void,
     Int,
