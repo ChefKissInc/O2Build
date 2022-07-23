@@ -6,9 +6,9 @@ publish = false
 license-file = "../LICENSE"
 
 [dependencies]
-anyhow = "1.0.52"
+anyhow = "1.0.58"
 oxygen = { path = "../oxygen" }
-clap = { version = "3.0.7", features = [
+clap = { version = "3.2.14", features = [
     "derive",
     "env",
     "unicode",
